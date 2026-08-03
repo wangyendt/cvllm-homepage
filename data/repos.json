@@ -1,0 +1,35 @@
+{
+  "generated_at": "2026-08-03T12:47:09.762Z",
+  "scope": "Seven selected, non-fork repositories featured on the homepage",
+  "source": "https://api.github.com/users/wangyendt/repos",
+  "repositories": [
+    {
+      "name": "BaselineRemoval",
+      "stars": 14
+    },
+    {
+      "name": "skillmanager",
+      "stars": 11
+    },
+    {
+      "name": "wayne_algorithm_lib",
+      "stars": 10
+    },
+    {
+      "name": "wayne-skills",
+      "stars": 8
+    },
+    {
+      "name": "cpp_tools",
+      "stars": 7
+    },
+    {
+      "name": "Coordinate-Transformation-Helper",
+      "stars": 6
+    },
+    {
+      "name": "kalibr-camimu-ceres",
+      "stars": 5
+    }
+  ]
+}
