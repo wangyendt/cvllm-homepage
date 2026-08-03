@@ -1,0 +1,2 @@
+# GitHub Actions refreshes data at 02:17 UTC; production pulls the snapshot 30 minutes later.
+47 2 * * * root /usr/bin/git -C /var/www/wayne_web -c safe.directory=/var/www/wayne_web pull --ff-only origin main >> /var/log/cvllm-profile-update.log 2>&1
