@@ -1,0 +1,239 @@
+自相关系数
+==================
+
+1. 算法场景
+-----------
+
+给定一个时间序列 :math:`X(t)=\{x_1,x_2,...,x_i,...\}`，时刻 :math:`t_i` 对应的值为 :math:`x_i`，
+我们需要计算该时间序列的自相关系数向量，并且尽量减少线程阻塞的可能。
+
+
+2. 问题分析
+-----------
+
+`自相关系数`_\ 向量定义如下：
+
+.. math::
+
+    R = [R(1),R(2),...,R(n)]^T
+
+其中 :math:`R(k)` 为 :math:`lag=k` 对应的自相关系数，有：
+
+.. math::
+
+    R(k) = \sum\limits_{i=1}^{n-k+1} (x_i-\bar{x})(x_{i+k-1}-\bar{x})
+
+如果在时间 :math:`t_n` 时计算这 :math:`n` 个自相关系数，在每个时间点上平均计算次数如下：
+
+.. csv-table:: 常规方法求自相关系数时间分析
+    :align: center
+    :widths: auto
+    :header: ,t\ :sub:`1`,t\ :sub:`2`,...,t\ :sub:`n-1`,t\ :sub:`n`
+
+    平均操作次数,0,0,...,0,O(n\ :sup:`2`\ )
+    状态,idle,idle,...,idle,busy
+
+可见整个计算过程主要的时间花费在最后一帧，当 :math:`n` 比较大时，容易造成线程阻塞。
+如果我们能将公式进行拆分重组，将计算过程分摊给每一帧，则会降低线程阻塞的风险。
+拆分重组的原则如下：
+
+.. _拆分重组原则:
+
+* 每一帧参与运算的元素不应该包含这一帧之后的元素
+* 每一帧应该尽可能将该帧以及之前的所有元素参与的计算都包含在内
+* 用尽可能少的空间存储中间变量
+
+事实上，我们有：
+
+.. math::
+    
+    R(k) &= \sum\limits_{i=1}^{n-k+1} (x_i-\bar{x})(x_{i+k-1}-\bar{x}) \\
+         &= \sum\limits_{i=1}^{n-k+1} (x_i\cdot x_{i+k-1}-\bar{x}\cdot(x_i+x_{i+k-1})+\bar{x}^2) \\
+         &= \sum\limits_{i=1}^{n-k+1} x_i\cdot x_{i+k-1} - (\sum\limits_{i=1}^{n-k+1}x_i + \sum\limits_{i=1}^{n-k+1}x_{i+k-1})\cdot\bar{x} + (n-k+1)\cdot\bar{x}^2 \\
+         &= \sum\limits_{i=1}^{n-k+1} x_i\cdot x_{i+k-1} - (\sum\limits_{i=1}^{n-k+1}x_i + \sum\limits_{i=k}^{n}x_{i})\cdot\bar{x} + (n-k+1)\cdot\bar{x}^2 \\
+         &= \sum\limits_{i=1}^{n-k+1} x_i\cdot x_{i+k-1} - (\sum\limits_{i=1}^{n-k+1}x_i + \sum\limits_{i=1}^{n}x_{i} - \sum\limits_{i=1}^{k-1}x_{i})\cdot\bar{x} + (n-k+1)\cdot\bar{x}^2 \\
+         &= \sum\limits_{i=1}^{n-k+1} x_i\cdot x_{i+k-1} - \sum\limits_{i=1}^{n-k+1}x_i\cdot\bar{x} + \sum\limits_{i=1}^{k-1}x_{i}\cdot\bar{x} - n\cdot\bar{x}^2 + (n-k+1)\cdot\bar{x}^2 \\
+         &= \sum\limits_{i=1}^{n-k+1} x_i\cdot x_{i+k-1} - \frac{1}{n}\sum\limits_{i=1}^{n-k+1}x_i\cdot\sum\limits_{i=1}^n x_i + \frac{1}{n}\sum\limits_{i=1}^{k-1}x_{i}\cdot\sum\limits_{i=1}^n x_i-(k-1)\cdot\bar{x}^2 \\
+
+上式中，:math:`\bar{x}` 可以通过每一帧平均次数为O(1)更新求出，
+先看 :math:`r_k=\sum\limits_{i=1}^{n-k+1} x_i\cdot x_{i+k-1}` 这一项，将之展开，我们得到：
+
+.. csv-table::
+    :align: center
+    :widths: auto
+    :header: ,t\ :sub:`1`,t\ :sub:`2`,...,t\ :sub:`n-1`,t\ :sub:`n`
+
+    :math:`r_1`,:math:`x_1x_1`,:math:`x_2x_2`,...,:math:`x_{n-1}x_{n-1}`,:math:`x_nx_n`
+    :math:`r_2`,:math:`x_1x_2`,:math:`x_2x_3`,...,:math:`x_{n-1}x_n`,
+    ...,,,,,
+    :math:`r_{n-1}`,:math:`x_1x_{n-1}`,:math:`x_2x_n`,,,
+    :math:`r_n`,:math:`x_1x_n`,,,,
+
+上表中每一行的 :math:`r_k` 为右侧 :math:`t_1` ~ :math:`t_n` 若干项之和，我们现在将元素进行错位，得到：
+
+.. csv-table::
+    :align: center
+    :widths: auto
+    :header: ,t\ :sub:`1`,t\ :sub:`2`,...,t\ :sub:`n-1`,t\ :sub:`n`
+
+    :math:`r_1`,:math:`x_1x_1`,:math:`x_2x_2`,...,:math:`x_{n-1}x_{n-1}`,:math:`x_nx_n`
+    :math:`r_2`,,:math:`x_1x_2`,...,:math:`x_{n-2}x_{n-1}`,:math:`x_{n-1}x_n`
+    ...,,,,,
+    :math:`r_{n-1}`,,,...,:math:`x_1x_{n-1}`,:math:`x_2x_n`
+    :math:`r_n`,,,,,:math:`x_1x_n`
+
+从新表可以得知，每个 :math:`r_k` 的值没有变，
+但每个时间点 :math:`t_i` 都可以参与 :math:`r_k` 的计算，
+且运算量最大的 :math:`t_n` 时间点也只需计算 :math:`n` 次。
+每一帧的平均操作数为O(n)。
+
+接下来看 :math:`p_k=\sum\limits_{i=1}^{n-k+1}x_i\cdot\sum\limits_{i=1}^n x_i`
+和 :math:`q_k=\sum\limits_{i=1}^{k-1}x_i\cdot\sum\limits_{i=1}^n x_i`\ 这两项。
+根据\ 拆分重组原则_，尝试将表达式改写成若干项之和，每一项仅出现该项以及之前出现过的项，
+且运算不包含多重循环。那么有：
+
+.. math::
+
+    p_k &= \sum\limits_{i=1}^{n-k+1}x_i\cdot\sum\limits_{i=1}^n x_i \\
+        &= (\sum\limits_{i=1}^{n-k+1}x_i)^2+\sum\limits_{i=1}^{n-k+1}x_i\cdot\sum\limits_{i=n-k+2}^n x_i
+
+其中 :math:`\sum\limits_{i=1}^{n-k+1}x_i`、:math:`\sum\limits_{i=n-k+2}^n x_i` 两个求和项彼此不包含相同元素，
+可以较容易地累计前 :math:`n-k+1` 项之和，再在后 :math:`k-1` 项每一项乘以该和并累加。
+注意到：
+
+.. math::
+    
+    (\sum\limits_{i=1}^{n-k+1}x_i)^2 = (\sum\limits_{i=1}^{n-k}x_i)^2 + 2\cdot x_{n-k+1}\cdot\sum\limits_{i=1}^{n-k}x_i + x_{n-k+1}^2
+
+因此，:math:`P` 可以写成如下三个矩阵之和：
+
+.. math::
+
+    P &= 
+        \left[
+        \begin{array}{ccc}
+            p_1 &
+            p_2 &
+            \cdots &
+            p_n
+        \end{array}
+        \right]^T \\\\
+        &=
+        \begin{bmatrix}
+            x_1^2 & x_2^2 & \cdots & \cdots & x_n^2 \\
+            x_1^2 & x_2^2 & \cdots & x_{n-1}^2 & \\
+            \vdots & \vdots & & & \\
+            x_1^2 & x_2^2 & & & \\
+            x_1^2 & & & &
+        \end{bmatrix} \\\\
+        &+
+        \begin{bmatrix}
+            0 & 2x_2x_1 & 2x_3(x_1+x_2) & \cdots & 2x_n(x_1+...+x_{n-1}) \\
+            0 & 2x_2x_1 & 2x_3(x_1+x_2) & \cdots & \\
+            \vdots & & & & & \\
+            0 & 2x_2x_1 & 2x_3(x_1+x_2) & & & \\
+            0 & 2x_2x_1 & & & & \\
+            0 & & & & &
+        \end{bmatrix} \\\\
+        &+
+        \begin{bmatrix}
+            & & & & & 0 \\
+            & & & & & x_n(x_1+...+x_{n-1}) \\
+            & & & & & \vdots \\
+            & & 0 & \cdots & & x_n(x_1+x_2+x_3) \\
+            & 0 & x_3x_1 & \cdots & & x_n(x_1+x_2) \\
+            0 & x_2x_1 & x_3x_1 & \cdots & & x_nx_1
+        \end{bmatrix}
+
+类似地，将 :math:`Q` 亦做同样的拆分重组，可以写成如下三个矩阵之和：
+
+.. math::
+
+    Q &=
+        \left[
+        \begin{array}{ccc}
+            q_1 &
+            q_2 &
+            \cdots &
+            q_n
+        \end{array}
+        \right]^T \\\\
+        &=
+        \begin{bmatrix}
+            0 & & & & \\
+            x_1^2 & 0 & & & \\
+            x_1^2 & x_2^2 & & & \\
+            \vdots & & \ddots & & \\
+            x_1^2 & x_2^2 & \cdots & x_{n-1}^2 & 0
+        \end{bmatrix} \\\\
+        &+
+        \begin{bmatrix}
+            0 & & & & \\
+            0 & 0 & & & \\
+            0 & 2x_2x_1 & & & \\
+            0 & 2x_2x_1 & 2x_3(x_1+x_2) & & \\
+            \vdots & & & \ddots & \\
+            0 & 2x_2x_1 & 2x_3(x_1+x_2) & \cdots & 2x_{n-1}(x_1+...+x_{n-2})
+        \end{bmatrix} \\\\
+        &+
+        \begin{bmatrix}
+            0 & & & \cdots & 0 \\
+            & x_2x_1 & x_3x_1 & \cdots & x_nx_1 \\
+            & & x_3(x_1+x_2) & \cdots & x_n(x_1+x_2) \\
+            & & & & \vdots \\
+            & & & & x_n(x_1+...+x_{n-1})
+        \end{bmatrix}
+
+这样，:math:`P` 和 :math:`Q` 都可以重组为每一帧只有当前帧元素以及之前帧元素参与运算的形式，
+且不需占用额外的内存空间。
+
+3. 算法复杂度
+-------------
+
+Time Complexity per frame on average: **O(n)**
+
+Space Complexity per frame on average: **O(n)**
+
+
+4. 代码
+-------
+
+``python``
+
+.. code-block:: python
+    :linenos:
+
+    def calc_auto_correlation(x: list):
+        n = len(x)
+        R = [0] * n # 只用一个buffer
+        s = 0  # 用于计算平均值
+        for i in range(n):
+            for k in range(n):
+                if k <= i:
+                    R[k] += x[i - k] * x[i]
+                if k + i < n:
+                    R[k] -= x[i]**2 / n
+                    if i > 0:
+                        R[k] -= 2*x[i]*s / n
+                if k - i >= 1:
+                    R[k] += x[i]**2 / n
+                    if i > 0:
+                        R[k] += 2*x[i]*s / n
+            sum_k = 0
+            for k in range(n):
+                if k > 0 and i >= k:
+                    R[k] += x[i]*sum_k / n
+                    sum_k += x[k]
+            sum_k = 0
+            for k in range(n)[::-1]:
+                if n-k-1 < i:
+                    sum_k += x[n-1-k]
+                    R[k] -= x[i]*sum_k / n
+            s += x[i]
+        s /= n
+        for k in range(n):
+            R[k] -= k * s ** 2
+        return R
+
+
+.. _`自相关系数`: https://en.wikipedia.org/wiki/Autocorrelation

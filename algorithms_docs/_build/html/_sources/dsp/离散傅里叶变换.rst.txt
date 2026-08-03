@@ -1,0 +1,153 @@
+离散傅里叶变换
+==============
+
+1. 算法场景
+-----------
+
+给定一个时间序列 :math:`X(t)=\{x_1,x_2,...,x_i,...\}`，时刻 :math:`t_i` 对应的值为 :math:`x_i`，
+我们需要通过\ `离散傅里叶变换(Discrete Fourier Transformation)`_\ ，
+来计算该时域信号分别在频率 :math:`\omega_1,\omega_2,...,\omega_n` 上的成分。
+
+
+2. 问题分析
+-----------
+
+根据离散傅里叶变换公式及欧拉公式，每个频率 :math:`\omega_k,\ k\in \{1,2,...,n\}` 对应的分量为：
+
+.. math::
+
+    \widetilde{X}(\omega_k) &= \sum\limits_{i=0}^{n-1} x_i\cdot e^{-j\omega_ki} \\
+                            &= \sum\limits_{i=0}^{n-1} x_i\cdot e^{-\frac{2\pi j}{n}ki} \\
+                            &= \sum\limits_{i=0}^{n-1} x_i\cdot\left[\cos\frac{2\pi ki}{n}-j\cdot\sin\frac{2\pi ki}{n}\right]
+
+其中 :math:`j` 为虚数单位。
+
+如果在时间 :math:`t_{n}` 时计算这 :math:`n` 个DFT分量，在每个时间点上平均计算次数如下：
+
+.. csv-table:: DFT常规方法时间分析
+    :align: center
+    :widths: auto
+    :header: ,t\ :sub:`1`,t\ :sub:`2`,...,t\ :sub:`n-1`,t\ :sub:`n`
+
+    平均操作次数,0,0,...,0,O(n\ :sup:`2`\ )
+    状态,idle,idle,...,idle,busy
+
+可见整个计算过程主要的时间花费在最后一帧，当 :math:`n` 比较大时，容易造成线程阻塞。
+于是，将DFT的计算按时间进行分配，第 :math:`i` 帧只需要对 :math:`k=1,2,\cdots,n` 计算 :math:`x_i\cdot\cos\frac{2\pi ki}{N}` 和 :math:`x_i\cdot\sin\frac{2\pi ki}{N}` 即可。
+分别用 :math:`{\rm Re}(k)` 和 :math:`{\rm Im}(k)` 代表 :math:`\widetilde{X}(\omega_k)` 的实部和虚部，计算过程如下：
+
+.. csv-table::
+    :align: center
+    :widths: auto
+    :header: ,t\ :sub:`1`,t\ :sub:`2`,...,t\ :sub:`n`
+
+    :math:`{\rm Re}(1)`,:math:`x_0\cos\frac{2\pi\cdot 1\cdot 0}{N}`,...,...,:math:`x_{n-1}\cos\frac{2\pi\cdot 1\cdot(n-1)}{N}`
+    :math:`{\rm Im}(1)`,:math:`x_0\sin\frac{2\pi\cdot 1\cdot 0}{N}`,...,...,:math:`x_{n-1}\sin\frac{2\pi\cdot 1\cdot(n-1)}{N}`
+    :math:`\vdots`,:math:`\vdots`,:math:`\vdots`,...,:math:`\vdots`
+    :math:`{\rm Re}(k)`,:math:`x_0\cos\frac{2\pi\cdot k\cdot 0}{N}`,:math:`x_1\cos\frac{2\pi\cdot k\cdot 1}{N}`,...,:math:`x_{n-1}\cos\frac{2\pi\cdot k\cdot (n-1)}{N}`
+    :math:`{\rm Im}(k)`,:math:`x_0\sin\frac{2\pi\cdot k\cdot 0}{N}`,:math:`x_1\sin\frac{2\pi\cdot k\cdot 1}{N}`,...,:math:`x_{n-1}\sin\frac{2\pi\cdot k\cdot (n-1)}{N}`
+    :math:`\vdots`,:math:`\vdots`,:math:`\vdots`,...,:math:`\vdots`
+    :math:`{\rm Re}(n)`,:math:`x_0\cos\frac{2\pi\cdot n\cdot 0}{N}`,...,...,:math:`x_{n-1}\cos\frac{2\pi\cdot n\cdot(n-1)}{N}`
+    :math:`{\rm Im}(n)`,:math:`x_0\sin\frac{2\pi\cdot n\cdot 0}{N}`,...,...,:math:`x_{n-1}\cos\frac{2\pi\cdot n\cdot(n-1)}{N}`
+    平均操作次数,O(n),O(n),...,O(n)
+
+这样计算就被均摊在每一帧，降低了线程堵塞的风险。
+如果是在单片机中运行DFT算法，经常需要考虑运算时间和存储空间，
+通常三角函数的计算采用查表法，但通过上面👆的计算过程，我们需要存储 :math:`n^2` 个正弦值和余弦值，当 :math:`n` 比较大时内存消耗太大，下面对三角函数的存储进行优化。
+
+事实上，由三角函数公式：
+
+.. math::
+
+    \sin(x+y) = \sin(x)\cos(y)+\cos(x)\sin(y) \\
+    \cos(x+y) = \cos(x)\cos(y)-\sin(x)\sin(y)
+
+以及
+
+.. math::
+
+    x\cdot y=\frac{(x+y)^2-(x-y)^2}{2}
+
+得到
+
+.. math::
+
+    \sin xy &= \sin\frac{(x+y)^2-(x-y)^2}{2} \\
+                  &= \sin\frac{(x+y)^2}{2}\cos\frac{(x-y)^2}{2}-\cos\frac{(x+y)^2}{2}\sin\frac{(x-y)^2}{2}
+
+    \cos xy &= \cos\frac{(x+y)^2-(x-y)^2}{2} \\
+                  &= \cos\frac{(x+y)^2}{2}\cos\frac{(x-y)^2}{2}+\sin\frac{(x+y)^2}{2}\sin\frac{(x-y)^2}{2}
+
+令 :math:`x=\sqrt{\frac{2\pi}{n}}k`，:math:`y=\sqrt{\frac{2\pi}{n}}i`，则
+
+.. math::
+
+    \sin\frac{2\pi ki}{n} &= \sin\frac{\pi(k+i)^2}{n}\cos\frac{\pi(k-i)^2}{n}-\cos\frac{\pi(k+i)^2}{n}\sin\frac{\pi(k-i)^2}{n} \\
+    \cos\frac{2\pi ki}{n} &= \cos\frac{\pi(k+i)^2}{n}\cos\frac{\pi(k-i)^2}{n}+\sin\frac{\pi(k+i)^2}{n}\sin\frac{\pi(k-i)^2}{n}
+
+注意到当 :math:`i=0,...,n-1` 及 :math:`k=1,...,n` 时，:math:`2-n\leq k-i\leq k+i\leq 2n-1`，
+进而有 :math:`0\leq(k\pm i)^2\leq(2n-1)^2`，且 :math:`k\pm i` 会取到 :math:`0` ~ :math:`(2n-1)^2` 全部值。
+这样看来，我们需要保存的正弦、余弦值正比于 :math:`n^2`，仍然是非常庞大的存储量。这时我们回忆三角函数的两条性质：
+
+.. math::
+
+    \sin(x)&=-\sin(x+\pi)&=\sin(x+2\pi) \\
+    \cos(x)&=-\cos(x+\pi)&=\cos(x+2\pi)
+
+那么，:math:`\forall\ l\in\big[0,(2n-1)^2\big]`，容易求得，:math:`p=\lfloor\frac{l}{n}\rfloor` 和 :math:`q=l-np\in[0,n)`，则：
+
+.. math::
+
+    \sin(\frac{\pi l}{n}) &= \sin(\frac{\pi(np+q)}{n}) \\
+                          &= \sin(\pi p+\frac{\pi q}{n}) \\
+                          &=
+    \begin{cases}
+        \sin(\frac{\pi q}{n}),\  &if\ 2\ |\ p \\
+        -\sin(\frac{\pi q}{n}),\ &otherwise
+    \end{cases}
+
+同理，
+
+.. math::
+
+    \cos(\frac{\pi l}{n}) &= \cos(\pi p+\frac{\pi q}{n}) \\
+                          &=
+    \begin{cases}
+        \cos(\frac{\pi q}{n}),\  &if\ 2\ |\ p \\
+        -\cos(\frac{\pi q}{n}),\ &otherwise
+    \end{cases}
+
+这样我们仅需存储 :math:`0,\frac{\pi}{n},\cdots,\frac{\pi(n-1)}{n}` 这 :math:`n` 个正弦和余弦值即可。
+采用三角函数的一些基本变换，可以进一步节省额外内存：
+
+.. math::
+    
+    \sin(x) &= \sin(\pi-x) \\
+    \cos(x) &= \sin(\frac{\pi}{2}-x)
+
+这样我们仅需存储 :math:`0,\frac{\pi}{n},\cdots,\frac{\pi\lfloor n/2\rfloor}{n}` 这 :math:`\lfloor\frac{n}{2}\rfloor+1` 个正弦和余弦值即可。
+进一步，还可以参考三角函数的倍角公式：
+
+.. math::
+
+    \sin n\theta &= \sum\limits_{k=0}^n\binom{n}{k}\cos^k\theta\sin^{n-k}\theta\sin\big[\frac{1}{2}(n-k)\pi\big] \\
+                 &= \sin\theta\sum\limits_{k=0}^{\lfloor\frac{n-1}{2}\rfloor}(-1)^k\binom{n-1-k}{k}(2\cos\theta)^{n-1-2k} \\
+    \cos n\theta &= \sum\limits_{k=0}^n\binom{n}{k}\cos^k\theta\sin^{n-k}\theta\cos\big[\frac{1}{2}(n-k)\pi\big] \\
+                 &= \frac{1}{2}\sum\limits_{k=0}^{\lfloor\frac{n}{2}\rfloor}(-1)^k\frac{n}{n-k}\binom{n-k}{k}(2\cos\theta)^{n-2k}
+
+可以根据实际需求，酌情选取倍角公式来平衡运算时间和额外存储空间。
+
+
+3. 算法复杂度
+-------------
+
+Time Complexity per frame on average: **O(n)**
+
+Space Complexity per frame on average: **O(n)**
+
+
+4. 代码
+-------
+
+
+.. _`离散傅里叶变换(Discrete Fourier Transformation)`: https://en.wikipedia.org/wiki/Discrete_Fourier_transform

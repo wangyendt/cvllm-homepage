@@ -1,0 +1,246 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="zh-CN" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>滑窗计算方差 &mdash; algorithm docs 1.0 文档</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/documentation_options.js?v=f115507d"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/translations.js?v=beaddf03"></script>
+      <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="索引" href="../genindex.html" />
+    <link rel="search" title="搜索" href="../search.html" />
+    <link rel="next" title="自相关系数" href="%E8%87%AA%E7%9B%B8%E5%85%B3%E7%B3%BB%E6%95%B0.html" />
+    <link rel="prev" title="滑窗计算极值" href="%E6%BB%91%E7%AA%97%E8%AE%A1%E7%AE%97%E6%9E%81%E5%80%BC.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            algorithm docs
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">目录:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">dsp</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="%E6%BB%91%E7%AA%97%E8%AE%A1%E7%AE%97%E6%9E%81%E5%80%BC.html">滑窗计算极值</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">滑窗计算方差</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id2">1. 算法场景</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id3">2. 问题分析</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id4">3. 算法复杂度</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id5">4. 代码</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id6">5. 附录</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="%E8%87%AA%E7%9B%B8%E5%85%B3%E7%B3%BB%E6%95%B0.html">自相关系数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="%E7%A6%BB%E6%95%A3%E5%82%85%E9%87%8C%E5%8F%B6%E5%8F%98%E6%8D%A2.html">离散傅里叶变换</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">algorithm docs</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">dsp</a></li>
+      <li class="breadcrumb-item active">滑窗计算方差</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/dsp/滑窗计算方差.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="id1">
+<h1>滑窗计算方差<a class="headerlink" href="#id1" title="Link to this heading">¶</a></h1>
+<section id="id2">
+<h2>1. 算法场景<a class="headerlink" href="#id2" title="Link to this heading">¶</a></h2>
+<p>给定一个时间序列 <span class="math notranslate nohighlight">\(X(t)=\{x_1,x_2,...,x_i,...\}\)</span>，时刻 <span class="math notranslate nohighlight">\(t_i\)</span> 对应的值为 <span class="math notranslate nohighlight">\(x_i\)</span>，
+我们需要以窗长为 <span class="math notranslate nohighlight">\(n\)</span>、步长为 1 进行滑窗计算该窗内时间序列的方差，也就是在每个时刻 <span class="math notranslate nohighlight">\(t_i\)</span> 输出最近 <span class="math notranslate nohighlight">\(n\)</span> 个值的方差，
+并且尽量减少线程阻塞的可能。</p>
+</section>
+<section id="id3">
+<h2>2. 问题分析<a class="headerlink" href="#id3" title="Link to this heading">¶</a></h2>
+<p>我们先从一个简单情况入手，对于一个时间序列 <span class="math notranslate nohighlight">\(\{x_1,x_2,...,x_n\}\)</span> ，求这 <span class="math notranslate nohighlight">\(n\)</span> 个值的方差。
+根据<a class="reference external" href="https://en.wikipedia.org/wiki/Variance">方差</a>公式：</p>
+<div class="math notranslate nohighlight">
+\[Var(X) = \frac{1}{n}\sum\limits_{i=1}^n (x_i-\bar{x})^2\]</div>
+<p>在时间点<span class="math notranslate nohighlight">\(t_n\)</span>处使用该公式即可。
+在每个时间点上平均计算次数如下：</p>
+<table class="docutils align-center" id="id8">
+<caption><span class="caption-text">常规方法求时间序列方差时间分析</span><a class="headerlink" href="#id8" title="Link to this table">¶</a></caption>
+<thead>
+<tr class="row-odd"><th class="head"></th>
+<th class="head"><p>t<sub>1</sub></p></th>
+<th class="head"><p>t<sub>2</sub></p></th>
+<th class="head"><p>...</p></th>
+<th class="head"><p>t<sub>n-1</sub></p></th>
+<th class="head"><p>t<sub>n</sub></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>平均操作次数</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>...</p></td>
+<td><p>0</p></td>
+<td><p>O(n)</p></td>
+</tr>
+<tr class="row-odd"><td><p>状态</p></td>
+<td><p>idle</p></td>
+<td><p>idle</p></td>
+<td><p>...</p></td>
+<td><p>idle</p></td>
+<td><p>busy</p></td>
+</tr>
+</tbody>
+</table>
+<p>可见整个计算过程主要的时间花费在最后一帧，当 <span class="math notranslate nohighlight">\(n\)</span> 比较大时，容易造成线程阻塞。
+如果我们能将公式进行拆分重组，将计算过程分摊给每一帧，则会降低线程阻塞的风险。
+事实上，我们有：</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}Var(X) &amp;= \frac{1}{n}\sum\limits_{i=1}^n (x_i-\bar{x})^2 \\
+       &amp;= \frac{1}{n}\sum\limits_{i=1}^n (x_i^2-2\cdot x_i\cdot\bar{x}+\bar{x}^2) \\
+       &amp;= \frac{1}{n}\sum\limits_{i=1}^n x_i^2 - 2\cdot\bar{x}\cdot(\frac{1}{n}\sum\limits_{i=1}^n x_i) + \frac{1}{n}\sum\limits_{i=1}^n \bar{x}^2 \\
+       &amp;= \frac{1}{n}\sum\limits_{i=1}^n x_i^2 - 2\cdot\bar{x}\cdot\bar{x} + \bar{x}\cdot\bar{x} \\
+       &amp;= \frac{1}{n}\sum\limits_{i=1}^n x_i^2 - \bar{x}^2\end{split}\]</div>
+<p>于是，方差的计算可以按时间进行分配，每一帧仅更新 <span class="math notranslate nohighlight">\(\sum\limits_{i=1}^n x_i^2\)</span> 和 <span class="math notranslate nohighlight">\(\bar{x}\)</span> 即可。
+分别用 <span class="math notranslate nohighlight">\(S\)</span> 和 <span class="math notranslate nohighlight">\(s\)</span> 更新两者，具体如下：</p>
+<table class="docutils align-center">
+<thead>
+<tr class="row-odd"><th class="head"></th>
+<th class="head"><p>t<sub>1</sub></p></th>
+<th class="head"><p>t<sub>2</sub></p></th>
+<th class="head"><p>...</p></th>
+<th class="head"><p>t<sub>n-1</sub></p></th>
+<th class="head"><p>t<sub>n</sub></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(s=0\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(s=s+x_1\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(s=s+x_2\)</span></p></td>
+<td><p>...</p></td>
+<td><p><span class="math notranslate nohighlight">\(s=s+x_{n-1}\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(s=s+x_n\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(S=0\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(S=S+x_1^2\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(S=S+x_2^2\)</span></p></td>
+<td><p>...</p></td>
+<td><p><span class="math notranslate nohighlight">\(S=S+x_{n-1}^2\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(S=S+x_n^2\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p>平均操作次数</p></td>
+<td><p>O(1)</p></td>
+<td><p>O(1)</p></td>
+<td><p>...</p></td>
+<td><p>O(1)</p></td>
+<td><p>O(1)</p></td>
+</tr>
+</tbody>
+</table>
+<p>最终所求方差则为</p>
+<div class="math notranslate nohighlight">
+\[Var(X) = \frac{1}{n}\cdot (S-s^2)\]</div>
+<p>回到原问题，当我们需要滑窗求时间序列的方差时，也只需要不断更新 <span class="math notranslate nohighlight">\(S\)</span> 和 <span class="math notranslate nohighlight">\(s\)</span> 即可，
+每一帧更新只需要O(1)的时间复杂度，和O(1)的空间复杂度。</p>
+</section>
+<section id="id4">
+<h2>3. 算法复杂度<a class="headerlink" href="#id4" title="Link to this heading">¶</a></h2>
+<p>Time Complexity per frame on average: <strong>O(1)</strong></p>
+<p>Space Complexity per frame on average: <strong>O(1)</strong></p>
+</section>
+<section id="id5">
+<h2>4. 代码<a class="headerlink" href="#id5" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">python</span></code></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="k">def</span><span class="w"> </span><span class="nf">calc_sliding_var</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+<span class="linenos"> 2</span>    <span class="n">S</span> <span class="o">=</span> <span class="n">s</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="linenos"> 3</span>    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="linenos"> 4</span>    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+<span class="linenos"> 5</span>        <span class="n">s</span> <span class="o">+=</span> <span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+<span class="linenos"> 6</span>        <span class="n">S</span> <span class="o">+=</span> <span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span>
+<span class="linenos"> 7</span>        <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;=</span> <span class="n">k</span><span class="p">:</span>
+<span class="linenos"> 8</span>            <span class="n">s</span> <span class="o">-=</span> <span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="n">k</span><span class="p">]</span>
+<span class="linenos"> 9</span>            <span class="n">S</span> <span class="o">-=</span> <span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="n">k</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span>
+<span class="linenos">10</span>            <span class="k">yield</span> <span class="p">(</span><span class="n">S</span> <span class="o">-</span> <span class="n">s</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="n">n</span>
+</pre></div>
+</div>
+</section>
+<section id="id6">
+<h2>5. 附录<a class="headerlink" href="#id6" title="Link to this heading">¶</a></h2>
+<figure class="align-center" id="id9">
+<img alt="方差计算伪代码" src="../_images/variance.png" />
+<figcaption>
+<p><span class="caption-text">滑窗计算方差伪代码</span><a class="headerlink" href="#id9" title="Link to this image">¶</a></p>
+</figcaption>
+</figure>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="%E6%BB%91%E7%AA%97%E8%AE%A1%E7%AE%97%E6%9E%81%E5%80%BC.html" class="btn btn-neutral float-left" title="滑窗计算极值" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="%E8%87%AA%E7%9B%B8%E5%85%B3%E7%B3%BB%E6%95%B0.html" class="btn btn-neutral float-right" title="自相关系数" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024 Wayne.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,296 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="zh-CN" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>离散傅里叶变换 &mdash; algorithm docs 1.0 文档</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/documentation_options.js?v=f115507d"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/translations.js?v=beaddf03"></script>
+      <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="索引" href="../genindex.html" />
+    <link rel="search" title="搜索" href="../search.html" />
+    <link rel="prev" title="自相关系数" href="%E8%87%AA%E7%9B%B8%E5%85%B3%E7%B3%BB%E6%95%B0.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            algorithm docs
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">目录:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">dsp</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="%E6%BB%91%E7%AA%97%E8%AE%A1%E7%AE%97%E6%9E%81%E5%80%BC.html">滑窗计算极值</a></li>
+<li class="toctree-l2"><a class="reference internal" href="%E6%BB%91%E7%AA%97%E8%AE%A1%E7%AE%97%E6%96%B9%E5%B7%AE.html">滑窗计算方差</a></li>
+<li class="toctree-l2"><a class="reference internal" href="%E8%87%AA%E7%9B%B8%E5%85%B3%E7%B3%BB%E6%95%B0.html">自相关系数</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">离散傅里叶变换</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id2">1. 算法场景</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id3">2. 问题分析</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id4">3. 算法复杂度</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id5">4. 代码</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">algorithm docs</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">dsp</a></li>
+      <li class="breadcrumb-item active">离散傅里叶变换</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/dsp/离散傅里叶变换.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="id1">
+<h1>离散傅里叶变换<a class="headerlink" href="#id1" title="Link to this heading">¶</a></h1>
+<section id="id2">
+<h2>1. 算法场景<a class="headerlink" href="#id2" title="Link to this heading">¶</a></h2>
+<p>给定一个时间序列 <span class="math notranslate nohighlight">\(X(t)=\{x_1,x_2,...,x_i,...\}\)</span>，时刻 <span class="math notranslate nohighlight">\(t_i\)</span> 对应的值为 <span class="math notranslate nohighlight">\(x_i\)</span>，
+我们需要通过<a class="reference external" href="https://en.wikipedia.org/wiki/Discrete_Fourier_transform">离散傅里叶变换(Discrete Fourier Transformation)</a>，
+来计算该时域信号分别在频率 <span class="math notranslate nohighlight">\(\omega_1,\omega_2,...,\omega_n\)</span> 上的成分。</p>
+</section>
+<section id="id3">
+<h2>2. 问题分析<a class="headerlink" href="#id3" title="Link to this heading">¶</a></h2>
+<p>根据离散傅里叶变换公式及欧拉公式，每个频率 <span class="math notranslate nohighlight">\(\omega_k,\ k\in \{1,2,...,n\}\)</span> 对应的分量为：</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\widetilde{X}(\omega_k) &amp;= \sum\limits_{i=0}^{n-1} x_i\cdot e^{-j\omega_ki} \\
+                        &amp;= \sum\limits_{i=0}^{n-1} x_i\cdot e^{-\frac{2\pi j}{n}ki} \\
+                        &amp;= \sum\limits_{i=0}^{n-1} x_i\cdot\left[\cos\frac{2\pi ki}{n}-j\cdot\sin\frac{2\pi ki}{n}\right]\end{split}\]</div>
+<p>其中 <span class="math notranslate nohighlight">\(j\)</span> 为虚数单位。</p>
+<p>如果在时间 <span class="math notranslate nohighlight">\(t_{n}\)</span> 时计算这 <span class="math notranslate nohighlight">\(n\)</span> 个DFT分量，在每个时间点上平均计算次数如下：</p>
+<table class="docutils align-center" id="id6">
+<caption><span class="caption-text">DFT常规方法时间分析</span><a class="headerlink" href="#id6" title="Link to this table">¶</a></caption>
+<thead>
+<tr class="row-odd"><th class="head"></th>
+<th class="head"><p>t<sub>1</sub></p></th>
+<th class="head"><p>t<sub>2</sub></p></th>
+<th class="head"><p>...</p></th>
+<th class="head"><p>t<sub>n-1</sub></p></th>
+<th class="head"><p>t<sub>n</sub></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>平均操作次数</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>...</p></td>
+<td><p>0</p></td>
+<td><p>O(n<sup>2</sup>)</p></td>
+</tr>
+<tr class="row-odd"><td><p>状态</p></td>
+<td><p>idle</p></td>
+<td><p>idle</p></td>
+<td><p>...</p></td>
+<td><p>idle</p></td>
+<td><p>busy</p></td>
+</tr>
+</tbody>
+</table>
+<p>可见整个计算过程主要的时间花费在最后一帧，当 <span class="math notranslate nohighlight">\(n\)</span> 比较大时，容易造成线程阻塞。
+于是，将DFT的计算按时间进行分配，第 <span class="math notranslate nohighlight">\(i\)</span> 帧只需要对 <span class="math notranslate nohighlight">\(k=1,2,\cdots,n\)</span> 计算 <span class="math notranslate nohighlight">\(x_i\cdot\cos\frac{2\pi ki}{N}\)</span> 和 <span class="math notranslate nohighlight">\(x_i\cdot\sin\frac{2\pi ki}{N}\)</span> 即可。
+分别用 <span class="math notranslate nohighlight">\({\rm Re}(k)\)</span> 和 <span class="math notranslate nohighlight">\({\rm Im}(k)\)</span> 代表 <span class="math notranslate nohighlight">\(\widetilde{X}(\omega_k)\)</span> 的实部和虚部，计算过程如下：</p>
+<table class="docutils align-center">
+<thead>
+<tr class="row-odd"><th class="head"></th>
+<th class="head"><p>t<sub>1</sub></p></th>
+<th class="head"><p>t<sub>2</sub></p></th>
+<th class="head"><p>...</p></th>
+<th class="head"><p>t<sub>n</sub></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\({\rm Re}(1)\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(x_0\cos\frac{2\pi\cdot 1\cdot 0}{N}\)</span></p></td>
+<td><p>...</p></td>
+<td><p>...</p></td>
+<td><p><span class="math notranslate nohighlight">\(x_{n-1}\cos\frac{2\pi\cdot 1\cdot(n-1)}{N}\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\({\rm Im}(1)\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(x_0\sin\frac{2\pi\cdot 1\cdot 0}{N}\)</span></p></td>
+<td><p>...</p></td>
+<td><p>...</p></td>
+<td><p><span class="math notranslate nohighlight">\(x_{n-1}\sin\frac{2\pi\cdot 1\cdot(n-1)}{N}\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(\vdots\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(\vdots\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(\vdots\)</span></p></td>
+<td><p>...</p></td>
+<td><p><span class="math notranslate nohighlight">\(\vdots\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\({\rm Re}(k)\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(x_0\cos\frac{2\pi\cdot k\cdot 0}{N}\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(x_1\cos\frac{2\pi\cdot k\cdot 1}{N}\)</span></p></td>
+<td><p>...</p></td>
+<td><p><span class="math notranslate nohighlight">\(x_{n-1}\cos\frac{2\pi\cdot k\cdot (n-1)}{N}\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\({\rm Im}(k)\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(x_0\sin\frac{2\pi\cdot k\cdot 0}{N}\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(x_1\sin\frac{2\pi\cdot k\cdot 1}{N}\)</span></p></td>
+<td><p>...</p></td>
+<td><p><span class="math notranslate nohighlight">\(x_{n-1}\sin\frac{2\pi\cdot k\cdot (n-1)}{N}\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(\vdots\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(\vdots\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(\vdots\)</span></p></td>
+<td><p>...</p></td>
+<td><p><span class="math notranslate nohighlight">\(\vdots\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\({\rm Re}(n)\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(x_0\cos\frac{2\pi\cdot n\cdot 0}{N}\)</span></p></td>
+<td><p>...</p></td>
+<td><p>...</p></td>
+<td><p><span class="math notranslate nohighlight">\(x_{n-1}\cos\frac{2\pi\cdot n\cdot(n-1)}{N}\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\({\rm Im}(n)\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(x_0\sin\frac{2\pi\cdot n\cdot 0}{N}\)</span></p></td>
+<td><p>...</p></td>
+<td><p>...</p></td>
+<td><p><span class="math notranslate nohighlight">\(x_{n-1}\cos\frac{2\pi\cdot n\cdot(n-1)}{N}\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p>平均操作次数</p></td>
+<td><p>O(n)</p></td>
+<td><p>O(n)</p></td>
+<td><p>...</p></td>
+<td><p>O(n)</p></td>
+</tr>
+</tbody>
+</table>
+<p>这样计算就被均摊在每一帧，降低了线程堵塞的风险。
+如果是在单片机中运行DFT算法，经常需要考虑运算时间和存储空间，
+通常三角函数的计算采用查表法，但通过上面👆的计算过程，我们需要存储 <span class="math notranslate nohighlight">\(n^2\)</span> 个正弦值和余弦值，当 <span class="math notranslate nohighlight">\(n\)</span> 比较大时内存消耗太大，下面对三角函数的存储进行优化。</p>
+<p>事实上，由三角函数公式：</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\sin(x+y) = \sin(x)\cos(y)+\cos(x)\sin(y) \\
+\cos(x+y) = \cos(x)\cos(y)-\sin(x)\sin(y)\end{split}\]</div>
+<p>以及</p>
+<div class="math notranslate nohighlight">
+\[x\cdot y=\frac{(x+y)^2-(x-y)^2}{2}\]</div>
+<p>得到</p>
+<div class="math notranslate nohighlight">
+\[ \begin{align}\begin{aligned}\begin{split}\sin xy &amp;= \sin\frac{(x+y)^2-(x-y)^2}{2} \\
+              &amp;= \sin\frac{(x+y)^2}{2}\cos\frac{(x-y)^2}{2}-\cos\frac{(x+y)^2}{2}\sin\frac{(x-y)^2}{2}\end{split}\\\begin{split}\cos xy &amp;= \cos\frac{(x+y)^2-(x-y)^2}{2} \\
+              &amp;= \cos\frac{(x+y)^2}{2}\cos\frac{(x-y)^2}{2}+\sin\frac{(x+y)^2}{2}\sin\frac{(x-y)^2}{2}\end{split}\end{aligned}\end{align} \]</div>
+<p>令 <span class="math notranslate nohighlight">\(x=\sqrt{\frac{2\pi}{n}}k\)</span>，<span class="math notranslate nohighlight">\(y=\sqrt{\frac{2\pi}{n}}i\)</span>，则</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\sin\frac{2\pi ki}{n} &amp;= \sin\frac{\pi(k+i)^2}{n}\cos\frac{\pi(k-i)^2}{n}-\cos\frac{\pi(k+i)^2}{n}\sin\frac{\pi(k-i)^2}{n} \\
+\cos\frac{2\pi ki}{n} &amp;= \cos\frac{\pi(k+i)^2}{n}\cos\frac{\pi(k-i)^2}{n}+\sin\frac{\pi(k+i)^2}{n}\sin\frac{\pi(k-i)^2}{n}\end{split}\]</div>
+<p>注意到当 <span class="math notranslate nohighlight">\(i=0,...,n-1\)</span> 及 <span class="math notranslate nohighlight">\(k=1,...,n\)</span> 时，<span class="math notranslate nohighlight">\(2-n\leq k-i\leq k+i\leq 2n-1\)</span>，
+进而有 <span class="math notranslate nohighlight">\(0\leq(k\pm i)^2\leq(2n-1)^2\)</span>，且 <span class="math notranslate nohighlight">\(k\pm i\)</span> 会取到 <span class="math notranslate nohighlight">\(0\)</span> ~ <span class="math notranslate nohighlight">\((2n-1)^2\)</span> 全部值。
+这样看来，我们需要保存的正弦、余弦值正比于 <span class="math notranslate nohighlight">\(n^2\)</span>，仍然是非常庞大的存储量。这时我们回忆三角函数的两条性质：</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\sin(x)&amp;=-\sin(x+\pi)&amp;=\sin(x+2\pi) \\
+\cos(x)&amp;=-\cos(x+\pi)&amp;=\cos(x+2\pi)\end{split}\]</div>
+<p>那么，<span class="math notranslate nohighlight">\(\forall\ l\in\big[0,(2n-1)^2\big]\)</span>，容易求得，<span class="math notranslate nohighlight">\(p=\lfloor\frac{l}{n}\rfloor\)</span> 和 <span class="math notranslate nohighlight">\(q=l-np\in[0,n)\)</span>，则：</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\sin(\frac{\pi l}{n}) &amp;= \sin(\frac{\pi(np+q)}{n}) \\
+                      &amp;= \sin(\pi p+\frac{\pi q}{n}) \\
+                      &amp;=
+\begin{cases}
+    \sin(\frac{\pi q}{n}),\  &amp;if\ 2\ |\ p \\
+    -\sin(\frac{\pi q}{n}),\ &amp;otherwise
+\end{cases}\end{split}\]</div>
+<p>同理，</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\cos(\frac{\pi l}{n}) &amp;= \cos(\pi p+\frac{\pi q}{n}) \\
+                      &amp;=
+\begin{cases}
+    \cos(\frac{\pi q}{n}),\  &amp;if\ 2\ |\ p \\
+    -\cos(\frac{\pi q}{n}),\ &amp;otherwise
+\end{cases}\end{split}\]</div>
+<p>这样我们仅需存储 <span class="math notranslate nohighlight">\(0,\frac{\pi}{n},\cdots,\frac{\pi(n-1)}{n}\)</span> 这 <span class="math notranslate nohighlight">\(n\)</span> 个正弦和余弦值即可。
+采用三角函数的一些基本变换，可以进一步节省额外内存：</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\sin(x) &amp;= \sin(\pi-x) \\
+\cos(x) &amp;= \sin(\frac{\pi}{2}-x)\end{split}\]</div>
+<p>这样我们仅需存储 <span class="math notranslate nohighlight">\(0,\frac{\pi}{n},\cdots,\frac{\pi\lfloor n/2\rfloor}{n}\)</span> 这 <span class="math notranslate nohighlight">\(\lfloor\frac{n}{2}\rfloor+1\)</span> 个正弦和余弦值即可。
+进一步，还可以参考三角函数的倍角公式：</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\sin n\theta &amp;= \sum\limits_{k=0}^n\binom{n}{k}\cos^k\theta\sin^{n-k}\theta\sin\big[\frac{1}{2}(n-k)\pi\big] \\
+             &amp;= \sin\theta\sum\limits_{k=0}^{\lfloor\frac{n-1}{2}\rfloor}(-1)^k\binom{n-1-k}{k}(2\cos\theta)^{n-1-2k} \\
+\cos n\theta &amp;= \sum\limits_{k=0}^n\binom{n}{k}\cos^k\theta\sin^{n-k}\theta\cos\big[\frac{1}{2}(n-k)\pi\big] \\
+             &amp;= \frac{1}{2}\sum\limits_{k=0}^{\lfloor\frac{n}{2}\rfloor}(-1)^k\frac{n}{n-k}\binom{n-k}{k}(2\cos\theta)^{n-2k}\end{split}\]</div>
+<p>可以根据实际需求，酌情选取倍角公式来平衡运算时间和额外存储空间。</p>
+</section>
+<section id="id4">
+<h2>3. 算法复杂度<a class="headerlink" href="#id4" title="Link to this heading">¶</a></h2>
+<p>Time Complexity per frame on average: <strong>O(n)</strong></p>
+<p>Space Complexity per frame on average: <strong>O(n)</strong></p>
+</section>
+<section id="id5">
+<h2>4. 代码<a class="headerlink" href="#id5" title="Link to this heading">¶</a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="%E8%87%AA%E7%9B%B8%E5%85%B3%E7%B3%BB%E6%95%B0.html" class="btn btn-neutral float-left" title="自相关系数" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024 Wayne.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

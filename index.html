@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>技术学习分享网站</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --gradient-start: #4158D0;
+            --gradient-mid: #C850C0;
+            --gradient-end: #FFCC70;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: linear-gradient(45deg, var(--gradient-start), var(--gradient-mid), var(--gradient-end));
+            background-size: 400% 400%;
+            animation: gradient 15s ease infinite;
+        }
+
+        @keyframes gradient {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 3rem;
+            flex: 1;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 4rem;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+            letter-spacing: 2px;
+        }
+
+        .header p {
+            font-size: 1.4rem;
+            opacity: 0.9;
+            letter-spacing: 1px;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            gap: 5rem;
+            margin-bottom: 5rem;
+            padding: 0 2rem;
+        }
+
+        .stat-item {
+            text-align: center;
+            color: white;
+        }
+
+        .stat-number {
+            font-size: 3.2rem;
+            font-weight: bold;
+            margin-bottom: 0.8rem;
+        }
+
+        .stat-label {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            letter-spacing: 1px;
+        }
+
+        .service-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2.5rem;
+            margin-bottom: 4rem;
+            padding: 0 1rem;
+        }
+
+        .service-card {
+            min-height: 400px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 2.5rem;
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .service-card:hover {
+            /* 移除卡片的悬停效果 */
+            /* transform: translateY(-10px); */
+            /* box-shadow: 0 12px 40px rgba(0,0,0,0.2); */
+        }
+
+        .service-card .icon {
+            font-size: 3rem;
+            margin-bottom: 1.5rem;
+            color: var(--gradient-mid);
+        }
+
+        .service-card h2 {
+            font-size: 1.8rem;
+            margin-bottom: 1.2rem;
+            letter-spacing: 1px;
+            color: #2c3e50;
+        }
+
+        .service-card p {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            margin-bottom: 2rem;
+            flex-grow: 1;
+        }
+
+        .service-card a {
+            display: inline-block;
+            padding: 0.8rem 1.5rem;
+            background: linear-gradient(45deg, var(--gradient-start), var(--gradient-mid));
+            color: white;
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            cursor: pointer; /* 确保链接有指针样式 */
+        }
+
+        .service-card a:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        footer {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 0.8rem;
+            text-align: center;
+        }
+
+        .beian-info {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #666;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .police-beian {
+            display: flex;
+            align-items: center;
+        }
+
+        .police-icon {
+            height: 1.2rem;
+            margin-right: 0.3rem;
+        }
+
+        .divider {
+            margin: 0 1rem;
+            color: #999;
+        }
+
+        /* 只在非常窄的屏幕上改为垂直排列 */
+        @media (max-width: 600px) {
+            .beian-info {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .divider {
+                display: none;
+            }
+        }
+
+        @media (max-width: 1200px) {
+            .service-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1.5rem;
+            }
+
+            .service-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 2.5rem;
+            }
+
+            .stats {
+                flex-direction: column;
+                gap: 2rem;
+            }
+
+            .service-card {
+                min-height: 350px;
+            }
+
+            .beian-info {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+        }
+
+        .project-links {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+            margin-top: 1rem;
+        }
+
+        .project-links a {
+            padding: 0.8rem 1.5rem;
+            font-size: 1rem;
+            letter-spacing: 0.5px;
+        }
+
+        .profile-links {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+            margin-top: 1rem;
+        }
+
+        .profile-links a {
+            padding: 0.8rem 1.5rem;
+            font-size: 1rem;
+            letter-spacing: 0.5px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header animate__animated animate__fadeIn">
+            <h1>技术学习分享网站</h1>
+            <p>探索编程的无限可能</p>
+        </header>
+
+        <div class="stats animate__animated animate__fadeInUp">
+            <div class="stat-item">
+                <div class="stat-number" id="projectCount">0</div>
+                <div class="stat-label">开源项目</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="codeCount">0</div>
+                <div class="stat-label">代码提交</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="starCount">0</div>
+                <div class="stat-label">获得星标</div>
+            </div>
+        </div>
+        
+        <div class="service-grid">
+            <div class="service-card animate__animated animate__fadeInLeft">
+                <div class="icon">📝</div>
+                <h2>个人简历</h2>
+                <p>了解我的专业背景、技能特长与工作经历</p>
+                <div class="profile-links">
+                    <a href="/resume">查看简历（建设中） →</a>
+                    <a href="https://leetcode.com/u/wangyehope/" target="_blank">LeetCode主页 →</a>
+                </div>
+            </div>
+            
+            <div class="service-card animate__animated animate__fadeInUp">
+                <div class="icon">💻</div>
+                <h2>项目成果</h2>
+                <p>探索我的开源项目与技术实践</p>
+                <div class="project-links">
+                    <a href="https://github.com/wangyendt/wayne_algorithm_lib" target="_blank">PyWayne →</a>
+                    <a href="https://github.com/wangyendt/cpp_tools" target="_blank">CPP Tools →</a>
+                    <a href="https://github.com/wangyendt/java_tools" target="_blank">Java Tools →</a>
+                    <a href="https://github.com/wangyendt/ios_tools" target="_blank">iOS Tools →</a>
+                    <a href="https://github.com/wangyendt/LeetCode" target="_blank">LeetCode →</a>
+                </div>
+            </div>
+
+            <div class="service-card animate__animated animate__fadeInRight">
+                <div class="icon">📚</div>
+                <h2>博客空间</h2>
+                <p>分享技术见解、学习心得与个人感悟</p>
+                <div class="profile-links">
+                    <a href="/blog">阅读博客（建设中） →</a>
+                    <a href="/algorithms">算法文档 →</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <div class="beian-info">
+            <span>
+                <a href="https://beian.miit.gov.cn/" target="_blank">粤ICP备2025376441号</a>
+            </span>
+            <span class="divider">|</span>
+            <span class="police-beian">
+                <img src="/images/image.png" alt="公安备案图标" class="police-icon"/>
+                <a href="http://www.beian.gov.cn/portal/registerSystemInfo" target="_blank">粤公网安备44030002006190号</a>
+            </span>
+            <span class="divider">|</span>
+            <span>联系邮箱：wang121ye@hotmail.com</span>
+        </div>
+    </footer>
+
+    <script>
+        // 数字增长动画
+        function animateNumber(element, target, duration) {
+            let start = 0;
+            const increment = target / (duration / 16);
+            const timer = setInterval(() => {
+                start += increment;
+                if (start >= target) {
+                    clearInterval(timer);
+                    start = target;
+                }
+                element.textContent = Math.floor(start);
+            }, 16);
+        }
+
+        // 页面加载后开始动画
+        window.addEventListener('load', () => {
+            animateNumber(document.getElementById('projectCount'), 5, 2000);
+            animateNumber(document.getElementById('codeCount'), 1000, 2000);
+            animateNumber(document.getElementById('starCount'), 50, 2000);
+        });
+
+        // 检测卡片是否在视野中
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        });
+
+        // 观察所有服务卡片
+        document.querySelectorAll('.service-card').forEach(card => {
+            observer.observe(card);
+        });
+    </script>
+</body>
+</html>

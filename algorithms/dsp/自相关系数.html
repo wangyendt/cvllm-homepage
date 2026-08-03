@@ -1,0 +1,414 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="zh-CN" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>自相关系数 &mdash; algorithm docs 1.0 文档</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/documentation_options.js?v=f115507d"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/translations.js?v=beaddf03"></script>
+      <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="索引" href="../genindex.html" />
+    <link rel="search" title="搜索" href="../search.html" />
+    <link rel="next" title="离散傅里叶变换" href="%E7%A6%BB%E6%95%A3%E5%82%85%E9%87%8C%E5%8F%B6%E5%8F%98%E6%8D%A2.html" />
+    <link rel="prev" title="滑窗计算方差" href="%E6%BB%91%E7%AA%97%E8%AE%A1%E7%AE%97%E6%96%B9%E5%B7%AE.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            algorithm docs
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">目录:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">dsp</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="%E6%BB%91%E7%AA%97%E8%AE%A1%E7%AE%97%E6%9E%81%E5%80%BC.html">滑窗计算极值</a></li>
+<li class="toctree-l2"><a class="reference internal" href="%E6%BB%91%E7%AA%97%E8%AE%A1%E7%AE%97%E6%96%B9%E5%B7%AE.html">滑窗计算方差</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">自相关系数</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id2">1. 算法场景</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id3">2. 问题分析</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id5">3. 算法复杂度</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id6">4. 代码</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="%E7%A6%BB%E6%95%A3%E5%82%85%E9%87%8C%E5%8F%B6%E5%8F%98%E6%8D%A2.html">离散傅里叶变换</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">algorithm docs</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">dsp</a></li>
+      <li class="breadcrumb-item active">自相关系数</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/dsp/自相关系数.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="id1">
+<h1>自相关系数<a class="headerlink" href="#id1" title="Link to this heading">¶</a></h1>
+<section id="id2">
+<h2>1. 算法场景<a class="headerlink" href="#id2" title="Link to this heading">¶</a></h2>
+<p>给定一个时间序列 <span class="math notranslate nohighlight">\(X(t)=\{x_1,x_2,...,x_i,...\}\)</span>，时刻 <span class="math notranslate nohighlight">\(t_i\)</span> 对应的值为 <span class="math notranslate nohighlight">\(x_i\)</span>，
+我们需要计算该时间序列的自相关系数向量，并且尽量减少线程阻塞的可能。</p>
+</section>
+<section id="id3">
+<h2>2. 问题分析<a class="headerlink" href="#id3" title="Link to this heading">¶</a></h2>
+<p><a class="reference external" href="https://en.wikipedia.org/wiki/Autocorrelation">自相关系数</a>向量定义如下：</p>
+<div class="math notranslate nohighlight">
+\[R = [R(1),R(2),...,R(n)]^T\]</div>
+<p>其中 <span class="math notranslate nohighlight">\(R(k)\)</span> 为 <span class="math notranslate nohighlight">\(lag=k\)</span> 对应的自相关系数，有：</p>
+<div class="math notranslate nohighlight">
+\[R(k) = \sum\limits_{i=1}^{n-k+1} (x_i-\bar{x})(x_{i+k-1}-\bar{x})\]</div>
+<p>如果在时间 <span class="math notranslate nohighlight">\(t_n\)</span> 时计算这 <span class="math notranslate nohighlight">\(n\)</span> 个自相关系数，在每个时间点上平均计算次数如下：</p>
+<table class="docutils align-center" id="id8">
+<caption><span class="caption-text">常规方法求自相关系数时间分析</span><a class="headerlink" href="#id8" title="Link to this table">¶</a></caption>
+<thead>
+<tr class="row-odd"><th class="head"></th>
+<th class="head"><p>t<sub>1</sub></p></th>
+<th class="head"><p>t<sub>2</sub></p></th>
+<th class="head"><p>...</p></th>
+<th class="head"><p>t<sub>n-1</sub></p></th>
+<th class="head"><p>t<sub>n</sub></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>平均操作次数</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>...</p></td>
+<td><p>0</p></td>
+<td><p>O(n<sup>2</sup>)</p></td>
+</tr>
+<tr class="row-odd"><td><p>状态</p></td>
+<td><p>idle</p></td>
+<td><p>idle</p></td>
+<td><p>...</p></td>
+<td><p>idle</p></td>
+<td><p>busy</p></td>
+</tr>
+</tbody>
+</table>
+<p>可见整个计算过程主要的时间花费在最后一帧，当 <span class="math notranslate nohighlight">\(n\)</span> 比较大时，容易造成线程阻塞。
+如果我们能将公式进行拆分重组，将计算过程分摊给每一帧，则会降低线程阻塞的风险。
+拆分重组的原则如下：</p>
+<ul class="simple" id="id4">
+<li><p>每一帧参与运算的元素不应该包含这一帧之后的元素</p></li>
+<li><p>每一帧应该尽可能将该帧以及之前的所有元素参与的计算都包含在内</p></li>
+<li><p>用尽可能少的空间存储中间变量</p></li>
+</ul>
+<p>事实上，我们有：</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}R(k) &amp;= \sum\limits_{i=1}^{n-k+1} (x_i-\bar{x})(x_{i+k-1}-\bar{x}) \\
+     &amp;= \sum\limits_{i=1}^{n-k+1} (x_i\cdot x_{i+k-1}-\bar{x}\cdot(x_i+x_{i+k-1})+\bar{x}^2) \\
+     &amp;= \sum\limits_{i=1}^{n-k+1} x_i\cdot x_{i+k-1} - (\sum\limits_{i=1}^{n-k+1}x_i + \sum\limits_{i=1}^{n-k+1}x_{i+k-1})\cdot\bar{x} + (n-k+1)\cdot\bar{x}^2 \\
+     &amp;= \sum\limits_{i=1}^{n-k+1} x_i\cdot x_{i+k-1} - (\sum\limits_{i=1}^{n-k+1}x_i + \sum\limits_{i=k}^{n}x_{i})\cdot\bar{x} + (n-k+1)\cdot\bar{x}^2 \\
+     &amp;= \sum\limits_{i=1}^{n-k+1} x_i\cdot x_{i+k-1} - (\sum\limits_{i=1}^{n-k+1}x_i + \sum\limits_{i=1}^{n}x_{i} - \sum\limits_{i=1}^{k-1}x_{i})\cdot\bar{x} + (n-k+1)\cdot\bar{x}^2 \\
+     &amp;= \sum\limits_{i=1}^{n-k+1} x_i\cdot x_{i+k-1} - \sum\limits_{i=1}^{n-k+1}x_i\cdot\bar{x} + \sum\limits_{i=1}^{k-1}x_{i}\cdot\bar{x} - n\cdot\bar{x}^2 + (n-k+1)\cdot\bar{x}^2 \\
+     &amp;= \sum\limits_{i=1}^{n-k+1} x_i\cdot x_{i+k-1} - \frac{1}{n}\sum\limits_{i=1}^{n-k+1}x_i\cdot\sum\limits_{i=1}^n x_i + \frac{1}{n}\sum\limits_{i=1}^{k-1}x_{i}\cdot\sum\limits_{i=1}^n x_i-(k-1)\cdot\bar{x}^2 \\\end{split}\]</div>
+<p>上式中，<span class="math notranslate nohighlight">\(\bar{x}\)</span> 可以通过每一帧平均次数为O(1)更新求出，
+先看 <span class="math notranslate nohighlight">\(r_k=\sum\limits_{i=1}^{n-k+1} x_i\cdot x_{i+k-1}\)</span> 这一项，将之展开，我们得到：</p>
+<table class="docutils align-center">
+<thead>
+<tr class="row-odd"><th class="head"></th>
+<th class="head"><p>t<sub>1</sub></p></th>
+<th class="head"><p>t<sub>2</sub></p></th>
+<th class="head"><p>...</p></th>
+<th class="head"><p>t<sub>n-1</sub></p></th>
+<th class="head"><p>t<sub>n</sub></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(r_1\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(x_1x_1\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(x_2x_2\)</span></p></td>
+<td><p>...</p></td>
+<td><p><span class="math notranslate nohighlight">\(x_{n-1}x_{n-1}\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(x_nx_n\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(r_2\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(x_1x_2\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(x_2x_3\)</span></p></td>
+<td><p>...</p></td>
+<td><p><span class="math notranslate nohighlight">\(x_{n-1}x_n\)</span></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>...</p></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(r_{n-1}\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(x_1x_{n-1}\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(x_2x_n\)</span></p></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(r_n\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(x_1x_n\)</span></p></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>上表中每一行的 <span class="math notranslate nohighlight">\(r_k\)</span> 为右侧 <span class="math notranslate nohighlight">\(t_1\)</span> ~ <span class="math notranslate nohighlight">\(t_n\)</span> 若干项之和，我们现在将元素进行错位，得到：</p>
+<table class="docutils align-center">
+<thead>
+<tr class="row-odd"><th class="head"></th>
+<th class="head"><p>t<sub>1</sub></p></th>
+<th class="head"><p>t<sub>2</sub></p></th>
+<th class="head"><p>...</p></th>
+<th class="head"><p>t<sub>n-1</sub></p></th>
+<th class="head"><p>t<sub>n</sub></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(r_1\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(x_1x_1\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(x_2x_2\)</span></p></td>
+<td><p>...</p></td>
+<td><p><span class="math notranslate nohighlight">\(x_{n-1}x_{n-1}\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(x_nx_n\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(r_2\)</span></p></td>
+<td></td>
+<td><p><span class="math notranslate nohighlight">\(x_1x_2\)</span></p></td>
+<td><p>...</p></td>
+<td><p><span class="math notranslate nohighlight">\(x_{n-2}x_{n-1}\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(x_{n-1}x_n\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p>...</p></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(r_{n-1}\)</span></p></td>
+<td></td>
+<td></td>
+<td><p>...</p></td>
+<td><p><span class="math notranslate nohighlight">\(x_1x_{n-1}\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(x_2x_n\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(r_n\)</span></p></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td><p><span class="math notranslate nohighlight">\(x_1x_n\)</span></p></td>
+</tr>
+</tbody>
+</table>
+<p>从新表可以得知，每个 <span class="math notranslate nohighlight">\(r_k\)</span> 的值没有变，
+但每个时间点 <span class="math notranslate nohighlight">\(t_i\)</span> 都可以参与 <span class="math notranslate nohighlight">\(r_k\)</span> 的计算，
+且运算量最大的 <span class="math notranslate nohighlight">\(t_n\)</span> 时间点也只需计算 <span class="math notranslate nohighlight">\(n\)</span> 次。
+每一帧的平均操作数为O(n)。</p>
+<p>接下来看 <span class="math notranslate nohighlight">\(p_k=\sum\limits_{i=1}^{n-k+1}x_i\cdot\sum\limits_{i=1}^n x_i\)</span>
+和 <span class="math notranslate nohighlight">\(q_k=\sum\limits_{i=1}^{k-1}x_i\cdot\sum\limits_{i=1}^n x_i\)</span>这两项。
+根据<a class="reference internal" href="#id4">拆分重组原则</a>，尝试将表达式改写成若干项之和，每一项仅出现该项以及之前出现过的项，
+且运算不包含多重循环。那么有：</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}p_k &amp;= \sum\limits_{i=1}^{n-k+1}x_i\cdot\sum\limits_{i=1}^n x_i \\
+    &amp;= (\sum\limits_{i=1}^{n-k+1}x_i)^2+\sum\limits_{i=1}^{n-k+1}x_i\cdot\sum\limits_{i=n-k+2}^n x_i\end{split}\]</div>
+<p>其中 <span class="math notranslate nohighlight">\(\sum\limits_{i=1}^{n-k+1}x_i\)</span>、<span class="math notranslate nohighlight">\(\sum\limits_{i=n-k+2}^n x_i\)</span> 两个求和项彼此不包含相同元素，
+可以较容易地累计前 <span class="math notranslate nohighlight">\(n-k+1\)</span> 项之和，再在后 <span class="math notranslate nohighlight">\(k-1\)</span> 项每一项乘以该和并累加。
+注意到：</p>
+<div class="math notranslate nohighlight">
+\[(\sum\limits_{i=1}^{n-k+1}x_i)^2 = (\sum\limits_{i=1}^{n-k}x_i)^2 + 2\cdot x_{n-k+1}\cdot\sum\limits_{i=1}^{n-k}x_i + x_{n-k+1}^2\]</div>
+<p>因此，<span class="math notranslate nohighlight">\(P\)</span> 可以写成如下三个矩阵之和：</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}P &amp;=
+    \left[
+    \begin{array}{ccc}
+        p_1 &amp;
+        p_2 &amp;
+        \cdots &amp;
+        p_n
+    \end{array}
+    \right]^T \\\\
+    &amp;=
+    \begin{bmatrix}
+        x_1^2 &amp; x_2^2 &amp; \cdots &amp; \cdots &amp; x_n^2 \\
+        x_1^2 &amp; x_2^2 &amp; \cdots &amp; x_{n-1}^2 &amp; \\
+        \vdots &amp; \vdots &amp; &amp; &amp; \\
+        x_1^2 &amp; x_2^2 &amp; &amp; &amp; \\
+        x_1^2 &amp; &amp; &amp; &amp;
+    \end{bmatrix} \\\\
+    &amp;+
+    \begin{bmatrix}
+        0 &amp; 2x_2x_1 &amp; 2x_3(x_1+x_2) &amp; \cdots &amp; 2x_n(x_1+...+x_{n-1}) \\
+        0 &amp; 2x_2x_1 &amp; 2x_3(x_1+x_2) &amp; \cdots &amp; \\
+        \vdots &amp; &amp; &amp; &amp; &amp; \\
+        0 &amp; 2x_2x_1 &amp; 2x_3(x_1+x_2) &amp; &amp; &amp; \\
+        0 &amp; 2x_2x_1 &amp; &amp; &amp; &amp; \\
+        0 &amp; &amp; &amp; &amp; &amp;
+    \end{bmatrix} \\\\
+    &amp;+
+    \begin{bmatrix}
+        &amp; &amp; &amp; &amp; &amp; 0 \\
+        &amp; &amp; &amp; &amp; &amp; x_n(x_1+...+x_{n-1}) \\
+        &amp; &amp; &amp; &amp; &amp; \vdots \\
+        &amp; &amp; 0 &amp; \cdots &amp; &amp; x_n(x_1+x_2+x_3) \\
+        &amp; 0 &amp; x_3x_1 &amp; \cdots &amp; &amp; x_n(x_1+x_2) \\
+        0 &amp; x_2x_1 &amp; x_3x_1 &amp; \cdots &amp; &amp; x_nx_1
+    \end{bmatrix}\end{split}\]</div>
+<p>类似地，将 <span class="math notranslate nohighlight">\(Q\)</span> 亦做同样的拆分重组，可以写成如下三个矩阵之和：</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}Q &amp;=
+    \left[
+    \begin{array}{ccc}
+        q_1 &amp;
+        q_2 &amp;
+        \cdots &amp;
+        q_n
+    \end{array}
+    \right]^T \\\\
+    &amp;=
+    \begin{bmatrix}
+        0 &amp; &amp; &amp; &amp; \\
+        x_1^2 &amp; 0 &amp; &amp; &amp; \\
+        x_1^2 &amp; x_2^2 &amp; &amp; &amp; \\
+        \vdots &amp; &amp; \ddots &amp; &amp; \\
+        x_1^2 &amp; x_2^2 &amp; \cdots &amp; x_{n-1}^2 &amp; 0
+    \end{bmatrix} \\\\
+    &amp;+
+    \begin{bmatrix}
+        0 &amp; &amp; &amp; &amp; \\
+        0 &amp; 0 &amp; &amp; &amp; \\
+        0 &amp; 2x_2x_1 &amp; &amp; &amp; \\
+        0 &amp; 2x_2x_1 &amp; 2x_3(x_1+x_2) &amp; &amp; \\
+        \vdots &amp; &amp; &amp; \ddots &amp; \\
+        0 &amp; 2x_2x_1 &amp; 2x_3(x_1+x_2) &amp; \cdots &amp; 2x_{n-1}(x_1+...+x_{n-2})
+    \end{bmatrix} \\\\
+    &amp;+
+    \begin{bmatrix}
+        0 &amp; &amp; &amp; \cdots &amp; 0 \\
+        &amp; x_2x_1 &amp; x_3x_1 &amp; \cdots &amp; x_nx_1 \\
+        &amp; &amp; x_3(x_1+x_2) &amp; \cdots &amp; x_n(x_1+x_2) \\
+        &amp; &amp; &amp; &amp; \vdots \\
+        &amp; &amp; &amp; &amp; x_n(x_1+...+x_{n-1})
+    \end{bmatrix}\end{split}\]</div>
+<p>这样，<span class="math notranslate nohighlight">\(P\)</span> 和 <span class="math notranslate nohighlight">\(Q\)</span> 都可以重组为每一帧只有当前帧元素以及之前帧元素参与运算的形式，
+且不需占用额外的内存空间。</p>
+</section>
+<section id="id5">
+<h2>3. 算法复杂度<a class="headerlink" href="#id5" title="Link to this heading">¶</a></h2>
+<p>Time Complexity per frame on average: <strong>O(n)</strong></p>
+<p>Space Complexity per frame on average: <strong>O(n)</strong></p>
+</section>
+<section id="id6">
+<h2>4. 代码<a class="headerlink" href="#id6" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">python</span></code></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="k">def</span><span class="w"> </span><span class="nf">calc_auto_correlation</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="nb">list</span><span class="p">):</span>
+<span class="linenos"> 2</span>    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="linenos"> 3</span>    <span class="n">R</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">n</span> <span class="c1"># 只用一个buffer</span>
+<span class="linenos"> 4</span>    <span class="n">s</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># 用于计算平均值</span>
+<span class="linenos"> 5</span>    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+<span class="linenos"> 6</span>        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+<span class="linenos"> 7</span>            <span class="k">if</span> <span class="n">k</span> <span class="o">&lt;=</span> <span class="n">i</span><span class="p">:</span>
+<span class="linenos"> 8</span>                <span class="n">R</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">+=</span> <span class="n">x</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="n">k</span><span class="p">]</span> <span class="o">*</span> <span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+<span class="linenos"> 9</span>            <span class="k">if</span> <span class="n">k</span> <span class="o">+</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">n</span><span class="p">:</span>
+<span class="linenos">10</span>                <span class="n">R</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">-=</span> <span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span> <span class="o">/</span> <span class="n">n</span>
+<span class="linenos">11</span>                <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+<span class="linenos">12</span>                    <span class="n">R</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">-=</span> <span class="mi">2</span><span class="o">*</span><span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="n">s</span> <span class="o">/</span> <span class="n">n</span>
+<span class="linenos">13</span>            <span class="k">if</span> <span class="n">k</span> <span class="o">-</span> <span class="n">i</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
+<span class="linenos">14</span>                <span class="n">R</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">+=</span> <span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span> <span class="o">/</span> <span class="n">n</span>
+<span class="linenos">15</span>                <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+<span class="linenos">16</span>                    <span class="n">R</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">2</span><span class="o">*</span><span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="n">s</span> <span class="o">/</span> <span class="n">n</span>
+<span class="linenos">17</span>        <span class="n">sum_k</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="linenos">18</span>        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+<span class="linenos">19</span>            <span class="k">if</span> <span class="n">k</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">i</span> <span class="o">&gt;=</span> <span class="n">k</span><span class="p">:</span>
+<span class="linenos">20</span>                <span class="n">R</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">+=</span> <span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="n">sum_k</span> <span class="o">/</span> <span class="n">n</span>
+<span class="linenos">21</span>                <span class="n">sum_k</span> <span class="o">+=</span> <span class="n">x</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+<span class="linenos">22</span>        <span class="n">sum_k</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="linenos">23</span>        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+<span class="linenos">24</span>            <span class="k">if</span> <span class="n">n</span><span class="o">-</span><span class="n">k</span><span class="o">-</span><span class="mi">1</span> <span class="o">&lt;</span> <span class="n">i</span><span class="p">:</span>
+<span class="linenos">25</span>                <span class="n">sum_k</span> <span class="o">+=</span> <span class="n">x</span><span class="p">[</span><span class="n">n</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="n">k</span><span class="p">]</span>
+<span class="linenos">26</span>                <span class="n">R</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">-=</span> <span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="n">sum_k</span> <span class="o">/</span> <span class="n">n</span>
+<span class="linenos">27</span>        <span class="n">s</span> <span class="o">+=</span> <span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+<span class="linenos">28</span>    <span class="n">s</span> <span class="o">/=</span> <span class="n">n</span>
+<span class="linenos">29</span>    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+<span class="linenos">30</span>        <span class="n">R</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">-=</span> <span class="n">k</span> <span class="o">*</span> <span class="n">s</span> <span class="o">**</span> <span class="mi">2</span>
+<span class="linenos">31</span>    <span class="k">return</span> <span class="n">R</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="%E6%BB%91%E7%AA%97%E8%AE%A1%E7%AE%97%E6%96%B9%E5%B7%AE.html" class="btn btn-neutral float-left" title="滑窗计算方差" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="%E7%A6%BB%E6%95%A3%E5%82%85%E9%87%8C%E5%8F%B6%E5%8F%98%E6%8D%A2.html" class="btn btn-neutral float-right" title="离散傅里叶变换" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024 Wayne.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
