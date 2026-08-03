@@ -3,10 +3,10 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Ye Wang 的个人主页：算法工程、计算机视觉、传感器标定与 AI Agent 开源工具。">
-  <meta name="theme-color" content="#f5f7fb">
+  <meta name="description" content="Wang Ye 的个人主页：算法工程、计算机视觉、传感器标定与 AI Agent 开源工具。">
+  <meta name="theme-color" content="#8b4fdc">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='4' y='4' width='22' height='22' fill='%23f5f7fb' stroke='%23111c35' stroke-width='3'/%3E%3Crect x='22' y='1' width='8' height='8' fill='%23ee604b'/%3E%3Ccircle cx='11' cy='21' r='3' fill='%232458e6'/%3E%3C/svg%3E">
-  <title>Ye Wang — 算法工程与开源工具</title>
+  <title>Wang Ye — 算法工程与开源工具</title>
   <style>
     :root {
       --paper: #f5f7fb;
@@ -196,6 +196,56 @@
     .reveal.visible { opacity: 1; transform: none; }
     @keyframes draw { to { stroke-dashoffset: 0; } }
     @keyframes grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+    @keyframes gradient-drift { 0% { background-position: 0% 45%; } 50% { background-position: 100% 56%; } 100% { background-position: 0% 45%; } }
+
+    /* 原主页的流动渐变语言，升级为承载真实项目内容的玻璃界面 */
+    body {
+      color: #fff;
+      background: linear-gradient(-45deg, #4058d8, #9d4edd, #d854a8, #ff7b70, #f3b64a);
+      background-size: 420% 420%;
+      animation: gradient-drift 19s ease infinite;
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 12% 18%, rgba(89,226,255,.32), transparent 26%),
+        radial-gradient(circle at 82% 12%, rgba(255,224,126,.34), transparent 24%),
+        radial-gradient(circle at 74% 78%, rgba(100,80,255,.25), transparent 30%);
+    }
+    .nav { border-color: rgba(255,255,255,.2); background: rgba(48,28,104,.32); }
+    .brand-mark { border-color: #fff; }
+    .nav-links a { color: rgba(255,255,255,.76); }
+    .nav-links a:hover, .nav-links .nav-github { color: #fff; }
+    .eyebrow, .kicker { color: #ffe37d; }
+    h1 .accent { color: #ffe37d; text-shadow: 0 8px 28px rgba(62,31,115,.22); }
+    h1 .accent::after { background: #fff; opacity: .3; }
+    .hero-copy, .section-intro { color: rgba(255,255,255,.84); }
+    .btn { border-color: #fff; background: #fff; color: #3c287b; }
+    .btn:hover { box-shadow: 5px 5px 0 #ffe37d; }
+    .btn.secondary { background: rgba(255,255,255,.08); color: #fff; border-color: rgba(255,255,255,.55); }
+    .btn.secondary:hover { border-color: #fff; }
+    .hero-meta { color: rgba(255,255,255,.72); }
+    .hero-meta i { background: #79f0d4; }
+    .trace-panel { border-color: rgba(255,255,255,.38); background: rgba(35,25,88,.28); backdrop-filter: blur(18px); }
+    .trace-head { border-color: rgba(255,255,255,.25); color: rgba(255,255,255,.7); }
+    .trace-head b { color: #80f0d7; }
+    .trace-canvas { background-image: radial-gradient(circle, rgba(255,255,255,.28) 1px, transparent 1px); }
+    .trace-node { color: var(--ink); background: rgba(255,255,255,.92); border-color: rgba(255,255,255,.72); box-shadow: 3px 3px 0 rgba(40,20,80,.18); }
+    .axis-y, .axis-x { color: rgba(255,255,255,.62); }
+    .metrics { border-color: rgba(255,255,255,.25); background: rgba(45,28,100,.22); backdrop-filter: blur(16px); }
+    .metric { border-color: rgba(255,255,255,.24); }
+    .metric span { color: rgba(255,255,255,.7); }
+    .project, .star-board, .mini-project, .about { color: var(--ink); border-color: rgba(255,255,255,.7); background: rgba(255,255,255,.9); backdrop-filter: blur(18px); box-shadow: 0 18px 58px rgba(53,24,111,.16); }
+    .project:hover { border-color: #fff; box-shadow: 0 28px 75px rgba(53,24,111,.25); }
+    .more-grid { border-color: rgba(255,255,255,.7); }
+    .mini-project { background: rgba(255,255,255,.84); transition: background .18s ease, transform .18s ease; }
+    .mini-project:hover { background: #fff; transform: translateY(-3px); }
+    .leetcode { background: rgba(55,42,166,.88); box-shadow: 0 18px 58px rgba(53,24,111,.2); backdrop-filter: blur(18px); }
+    footer { color: var(--ink); border-color: rgba(255,255,255,.5); background: rgba(255,255,255,.86); backdrop-filter: blur(16px); }
 
     @media (max-width: 900px) {
       .nav-links a:not(.nav-github) { display: none; }
@@ -252,7 +302,7 @@
 <body>
   <nav class="nav" aria-label="主导航">
     <div class="shell nav-inner">
-      <a class="brand" href="#top" aria-label="Ye Wang 主页"><span class="brand-mark" aria-hidden="true"></span><span>YE WANG / 王烨</span></a>
+      <a class="brand" href="#top" aria-label="Wang Ye 主页"><span class="brand-mark" aria-hidden="true"></span><span>WANG YE / 王也</span></a>
       <div class="nav-links">
         <a href="#work">精选项目</a>
         <a href="#pywayne">pywayne</a>
@@ -267,7 +317,7 @@
       <div>
         <div class="eyebrow">Algorithm engineer · Open-source maker</div>
         <h1>把算法推导，做成<span class="accent">可靠的工程工具。</span></h1>
-        <p class="hero-copy">我是 Ye Wang，一名专注于算法、计算机视觉、传感器与 AI Agent 工具的工程师。这里收录我持续维护的开源项目：从 Cam-IMU 标定与 Python 算法库，到让多种编程 Agent 共享能力的 Skills 基础设施。</p>
+        <p class="hero-copy">我是 Wang Ye，一名专注于算法、计算机视觉、传感器与 AI Agent 工具的工程师。这里收录我持续维护的开源项目：从 Cam-IMU 标定与 Python 算法库，到让多种编程 Agent 共享能力的 Skills 基础设施。</p>
         <div class="hero-actions">
           <a class="btn" href="#work">探索精选项目 <span aria-hidden="true">↓</span></a>
           <a class="btn secondary" href="https://wayne-algorithm-lib.readthedocs.io/en/latest/index.html" target="_blank" rel="noreferrer">阅读 pywayne 文档 ↗</a>
@@ -416,7 +466,7 @@
 
   <footer>
     <div class="shell footer-inner">
-      <span>© <span id="year">2026</span> Ye Wang · Build, measure, document.</span>
+      <span>© <span id="year">2026</span> Wang Ye · Build, measure, document.</span>
       <div class="footer-links">
         <a href="https://beian.miit.gov.cn/" target="_blank" rel="noreferrer">粤ICP备2025376441号</a>
         <a class="police" href="http://www.beian.gov.cn/portal/registerSystemInfo" target="_blank" rel="noreferrer"><span class="police-icon" aria-hidden="true"></span>粤公网安备44030002006190号</a>
