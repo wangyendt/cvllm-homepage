@@ -1,4 +1,4 @@
-name: Update GitHub stars
+name: Update public profile data
 
 on:
   schedule:
@@ -16,17 +16,17 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Refresh repository metadata
+      - name: Refresh GitHub and LeetCode data
         run: node scripts/update-stars.mjs
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Commit changed counts
+      - name: Commit changed profile data
         run: |
-          if git diff --quiet -- data/repos.json; then
+          if git diff --quiet -- data/repos.json data/leetcode.json; then
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/repos.json
-          git commit -m "Update repository stars"
+          git add data/repos.json data/leetcode.json
+          git commit -m "Update public profile data"
           git push

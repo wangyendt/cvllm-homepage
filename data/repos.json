@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-03T12:47:09.762Z",
+  "generated_at": "2026-08-03T13:39:15.563Z",
   "scope": "Seven selected, non-fork repositories featured on the homepage",
   "source": "https://api.github.com/users/wangyendt/repos",
   "repositories": [
@@ -31,5 +31,9 @@
       "name": "kalibr-camimu-ceres",
       "stars": 5
     }
-  ]
+  ],
+  "profile": {
+    "public_repositories": 118,
+    "followers": 29
+  }
 }
