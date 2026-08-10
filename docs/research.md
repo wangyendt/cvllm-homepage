@@ -6,7 +6,7 @@
 
 主页不宜做成 117 个公开仓库的缩略列表。更好的叙事是：**算法工程师，以数学和工程实现为底座，持续构建机器人/视觉算法、开发工具与 AI Agent 基础设施。** 项目展示建议分成三个层次：
 
-1. 首屏主推：`skillmanager`、`pywayne`、`kalibr-camimu-ceres`。
+1. 首屏主推：`skilltruck`、`pywayne`、`kalibr-camimu-ceres`。
 2. 项目网格：再加入 `wayne-skills`、`cpp_tools`、`BaselineRemoval`、`Coordinate-Transformation-Helper`。
 3. 个人能力入口：GitHub、算法库文档、npm、LeetCode。
 
@@ -14,15 +14,15 @@
 
 ## 推荐项目排序
 
-### 1. skillmanager — 首页主推
+### 1. skilltruck — 首页主推
 
-- 链接：[GitHub](https://github.com/wangyendt/skillmanager) · [npm](https://www.npmjs.com/package/@wang121ye/skillmanager/)
-- 当前证据：11 Stars，48+ commits，16+ tags；npm 最新版 `0.1.19`；2026-07-04 至 2026-08-02 有 939 次下载；2026-07-31 仍有代码更新。
+- 链接：[GitHub](https://github.com/wangyendt/skilltruck) · [npm](https://www.npmjs.com/package/skilltruck/)
+- 当前证据：11 Stars；npm 最新版 `0.2.1`；项目已完成 SkillTruck 品牌迁移并持续更新。
 - 成熟度信号：MIT、双语 README、CLI + Web UI、GitHub Actions、公开 npm 包、多版本发布。
 - 准确定位：跨平台 Agent Skills 管理器，把官方、第三方及个人 skills 来源统一安装、更新和卸载，并支持 project/global scope、多 Agent 目录、profile 与远端配置同步。
 - 首页短文案：
 
-  > **Skill Manager**  
+  > **SkillTruck**
   > 面向多种 AI 编程 Agent 的跨平台 Skills 管理器。统一管理官方、社区与个人技能源，支持 CLI / Web UI、多 Agent 安装、配置档案和跨设备同步。
 
 - 推荐标签：`AI Agents` `Developer Tools` `JavaScript` `npm`
@@ -165,7 +165,7 @@
 ## 页面信息架构建议
 
 1. Hero：定位 + 3 个行动入口。
-2. Featured：前三个大项目卡片（Skill Manager、pywayne、Kalibr Ceres）。
+2. Featured：前三个大项目卡片（SkillTruck、pywayne、Kalibr Ceres）。
 3. More Projects：其余 4 个紧凑卡片。
 4. pywayne Ecosystem：源码、文档、C++ tools、Wayne Skills 的关系。
 5. Algorithm Practice：LeetCode 1,500+，链接个人页。
@@ -173,7 +173,7 @@
 
 项目生态可以用一句简洁关系说明：
 
-> `pywayne` 提供算法实现，`cpp_tools` 提供高性能内核，`wayne-skills` 把能力整理成 Agent 工作流，`skillmanager` 负责把这些工作流安装到不同 AI Agent。
+> `pywayne` 提供算法实现，`cpp_tools` 提供高性能内核，`wayne-skills` 把能力整理成 Agent 工作流，`skilltruck` 负责把这些工作流安装到不同 AI Agent。
 
 ## 不建议的表述
 
@@ -187,8 +187,8 @@
 
 - GitHub 用户 API：https://api.github.com/users/wangyendt
 - GitHub 仓库 API（第 1、2 页）：https://api.github.com/users/wangyendt/repos?per_page=100&sort=updated 和 https://api.github.com/users/wangyendt/repos?per_page=100&page=2&sort=updated
-- Skill Manager：https://github.com/wangyendt/skillmanager
-- npm 包：https://www.npmjs.com/package/@wang121ye/skillmanager/；registry metadata：https://registry.npmjs.org/@wang121ye%2Fskillmanager/latest；下载统计：https://api.npmjs.org/downloads/point/last-month/%40wang121ye%2Fskillmanager
+- SkillTruck：https://github.com/wangyendt/skilltruck
+- npm 包：https://www.npmjs.com/package/skilltruck/；registry metadata：https://registry.npmjs.org/skilltruck/latest；下载统计：https://api.npmjs.org/downloads/point/last-month/skilltruck
 - pywayne：https://github.com/wangyendt/wayne_algorithm_lib；文档：https://wayne-algorithm-lib.readthedocs.io/en/latest/index.html
 - Wayne Skills：https://github.com/wangyendt/wayne-skills
 - C++ Tools：https://github.com/wangyendt/cpp_tools
