@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-10-08T09:07:18.859Z",
+  "generated_at": "2026-10-09T09:13:49.141Z",
   "username": "wangyehope",
   "source": "https://leetcode.com/graphql/",
-  "profile_ranking": 6825,
+  "profile_ranking": 6834,
   "solved": {
     "all": 1562,
     "easy": 425,
@@ -11,8 +11,8 @@
   },
   "contest": {
     "rating": 2212.372,
-    "global_ranking": 7232,
-    "total_participants": 886096,
+    "global_ranking": 7236,
+    "total_participants": 887132,
     "top_percentage": 0.86,
     "attended": 148,
     "badge": "Guardian"
