@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-12T09:55:57.941Z",
+  "generated_at": "2026-11-13T09:41:54.185Z",
   "scope": "Seven selected, non-fork repositories featured on the homepage",
   "source": "https://api.github.com/users/wangyendt/repos",
   "repositories": [
@@ -24,11 +24,11 @@
       "stars": 7
     },
     {
-      "name": "Coordinate-Transformation-Helper",
-      "stars": 6
+      "name": "kalibr-camimu-ceres",
+      "stars": 7
     },
     {
-      "name": "kalibr-camimu-ceres",
+      "name": "Coordinate-Transformation-Helper",
       "stars": 6
     }
   ],
